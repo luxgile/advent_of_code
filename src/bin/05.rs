@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::str::FromStr;
+use std::{ops::Range, str::FromStr};
 
 advent_of_code::solution!(5);
 
@@ -52,15 +52,18 @@ pub fn part_one(input: &str) -> Option<u32> {
 
 pub fn part_two(input: &str) -> Option<u32> {
     let mut result = i64::MAX;
-    let seeds = get_ranged_seeds(input);
+    let seeds_range = get_ranged_seeds(input);
     let maps = get_maps(input);
-    for seed in seeds {
-        let mut value = seed;
-        for map in maps.iter() {
-            value = map.map_value(value);
-        }
-        if value < result {
-            result = value;
+    for seeds in seeds_range {
+        //TODO: Need to check for intersections with maps to optimize it.
+        for seed in seeds {
+            let mut value = seed;
+            for map in maps.iter() {
+                value = map.map_value(value);
+            }
+            if value < result {
+                result = value;
+            }
         }
     }
     Some(result as u32)
@@ -77,7 +80,7 @@ fn get_seeds(input: &str) -> Vec<i64> {
     seeds
 }
 
-fn get_ranged_seeds(input: &str) -> Vec<i64> {
+fn get_ranged_seeds(input: &str) -> Vec<Range<i64>> {
     let mut seeds = Vec::new();
     let r_number = Regex::new("[0-9]+").unwrap();
     let first_line = input.lines().next().unwrap();
@@ -85,7 +88,7 @@ fn get_ranged_seeds(input: &str) -> Vec<i64> {
     for number in iter.chunks(2) {
         let nmb = i64::from_str(number[0].as_str()).unwrap();
         let rng = i64::from_str(number[1].as_str()).unwrap();
-        seeds.extend((nmb..nmb + rng).collect::<Vec<_>>());
+        seeds.push(nmb..nmb + rng);
     }
     seeds
 }
